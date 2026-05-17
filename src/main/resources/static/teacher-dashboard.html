@@ -104,7 +104,7 @@
   .main {
     margin-left: 72px;
     min-height: 100vh;
-    padding: 32px 32px 100px 32px;
+    padding: 32px 32px 120px 32px;
   }
 
   .topbar {
@@ -552,7 +552,7 @@
     /* Main content */
     .main {
       margin-left: 0;
-      padding: 16px 16px 140px 16px;
+      padding: 16px 16px 200px 16px;
     }
 
     /* Topbar */
@@ -619,14 +619,18 @@
     /* Footer */
     footer {
       left: 0 !important;
+      bottom: 60px !important;
       flex-direction: column;
       align-items: flex-start;
-      gap: 10px;
-      padding: 12px 16px;
+      gap: 6px;
+      padding: 10px 16px;
       font-size: 11px;
     }
 
     footer > div:last-child { text-align: left; }
+
+    /* Hide middle section of footer on mobile to save space */
+    footer > div:nth-child(2) { display: none; }
 
     /* Buttons full width on mobile */
     .btn-primary { width: 100%; justify-content: center; }
