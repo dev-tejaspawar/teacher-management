@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TeachHub — Teacher Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #18181f;
+    --surface3: #1e1e28;
+    --border: rgba(255,255,255,0.07);
+    --border-strong: rgba(255,255,255,0.13);
+    --accent: #7c6dfa;
+    --accent2: #a78bfa;
+    --accent-glow: rgba(124,109,250,0.15);
+    --green: #34d399;
+    --green-bg: rgba(52,211,153,0.1);
+    --red: #f87171;
+    --red-bg: rgba(248,113,113,0.1);
+    --amber: #fbbf24;
+    --amber-bg: rgba(251,191,36,0.1);
+    --blue: #60a5fa;
+    --blue-bg: rgba(96,165,250,0.1);
+    --text: #f0f0f8;
+    --text2: #9898b0;
+    --text3: #5a5a72;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    width: 72px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 0;
+    z-index: 100;
+    gap: 4px;
+  }
+
+  .logo-mark {
+    width: 40px; height: 40px;
+    background: var(--accent);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    color: #fff;
+    margin-bottom: 24px;
+    box-shadow: 0 0 20px rgba(124,109,250,0.4);
+  }
+
+  .nav-btn {
+    width: 44px; height: 44px;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: transparent;
+    color: var(--text3);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .nav-btn:hover { background: var(--surface3); color: var(--text2); }
+  .nav-btn.active { background: var(--accent-glow); color: var(--accent); }
+  .nav-btn .tooltip {
+    position: absolute;
+    left: 54px;
+    background: var(--surface3);
+    color: var(--text);
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    border: 1px solid var(--border);
+    transition: opacity 0.2s;
+  }
+  .nav-btn:hover .tooltip { opacity: 1; }
+
+  /* MAIN */
+  .main {
+    margin-left: 72px;
+    min-height: 100vh;
+    padding: 32px 32px 100px 32px;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+  }
+
+  .page-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.5px;
+  }
+
+  .page-title span { color: var(--accent); }
+
+  .base-url-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    padding: 6px 14px;
+    font-size: 12px;
+    color: var(--text2);
+    cursor: pointer;
+  }
+  .base-url-badge input {
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--accent2);
+    font-size: 12px;
+    font-family: 'DM Sans', sans-serif;
+    width: 200px;
+  }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+
+  /* PANELS */
+  .panels {
+    display: flex;
+    gap: 24px;
+  }
+
+  .panel {
+    display: none;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+  }
+  .panel.active { display: flex; }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+  }
+
+  .card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-title .icon {
+    width: 28px; height: 28px;
+    background: var(--accent-glow);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    color: var(--accent);
+  }
+
+  /* FORM */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .form-group.full { grid-column: 1 / -1; }
+
+  label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  input[type="text"],
+  input[type="number"],
+  input[type="email"],
+  select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  input:focus, select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+  select option { background: var(--surface2); }
+
+  .btn {
+    padding: 10px 20px;
+    border-radius: var(--radius-sm);
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+  }
+  .btn-primary:hover { background: #6b5ce7; transform: translateY(-1px); }
+  .btn-primary:active { transform: translateY(0); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text2);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { background: var(--surface2); color: var(--text); }
+
+  .btn-danger {
+    background: var(--red-bg);
+    color: var(--red);
+    border: 1px solid rgba(248,113,113,0.2);
+  }
+  .btn-danger:hover { background: rgba(248,113,113,0.2); }
+
+  .btn-edit {
+    background: var(--blue-bg);
+    color: var(--blue);
+    border: 1px solid rgba(96,165,250,0.2);
+  }
+  .btn-edit:hover { background: rgba(96,165,250,0.2); }
+
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+  /* QUERY BAR */
+  .query-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .query-row .form-group { flex: 1; min-width: 140px; }
+
+  /* TABLE */
+  .table-wrap {
+    overflow-x: auto;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead tr {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--surface2); }
+
+  td {
+    padding: 12px 16px;
+    color: var(--text2);
+    white-space: nowrap;
+  }
+
+  td.name-cell { color: var(--text); font-weight: 500; }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 50px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .badge-green { background: var(--green-bg); color: var(--green); }
+  .badge-blue { background: var(--blue-bg); color: var(--blue); }
+  .badge-amber { background: var(--amber-bg); color: var(--amber); }
+  .badge-red { background: var(--red-bg); color: var(--red); }
+  .badge-purple { background: var(--accent-glow); color: var(--accent2); }
+
+  .actions-cell { display: flex; gap: 6px; }
+
+  /* RESPONSE BOX */
+  .response-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    font-size: 13px;
+    color: var(--green);
+    font-family: 'DM Mono', monospace;
+    white-space: pre-wrap;
+    max-height: 200px;
+    overflow-y: auto;
+    display: none;
+  }
+  .response-box.error { color: var(--red); }
+  .response-box.visible { display: block; }
+
+  /* TOAST */
+  .toast-container {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .toast {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    animation: slideIn 0.3s ease;
+    max-width: 320px;
+  }
+  .toast.success { border-color: rgba(52,211,153,0.3); }
+  .toast.error { border-color: rgba(248,113,113,0.3); }
+  .toast .dot-toast { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .toast.success .dot-toast { background: var(--green); }
+  .toast.error .dot-toast { background: var(--red); }
+
+  @keyframes slideIn {
+    from { transform: translateX(30px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 500;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    padding: 28px;
+    width: 540px;
+    max-width: 90vw;
+    animation: popIn 0.25s ease;
+  }
+  @keyframes popIn {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 22px;
+  }
+  .modal-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .modal-close {
+    background: none;
+    border: none;
+    color: var(--text3);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+  }
+  .modal-close:hover { color: var(--text); }
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 22px;
+  }
+
+  /* STATS ROW */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+
+  .stat-card.green::before { background: var(--green); }
+  .stat-card.blue::before { background: var(--blue); }
+  .stat-card.amber::before { background: var(--amber); }
+  .stat-card.purple::before { background: var(--accent); }
+
+  .stat-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+
+  .stat-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .empty-state {
+    padding: 48px;
+    text-align: center;
+    color: var(--text3);
+    font-size: 14px;
+  }
+
+  .empty-state .icon { font-size: 32px; margin-bottom: 12px; }
+
+  /* SPINNER */
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.2);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    display: none;
+  }
+  .spinner.visible { display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: var(--surface); }
+  ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+
+  .section-sep {
+    height: 1px;
+    background: var(--border);
+    margin: 4px 0;
+  }
+
+  .filter-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+
+  .chip {
+    padding: 5px 14px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: 500;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .chip:hover, .chip.active { background: var(--accent-glow); border-color: var(--accent); color: var(--accent2); }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="logo-mark">T</div>
+  <button class="nav-btn active" onclick="switchPanel('add')" title="Add Teacher">
+    ➕<span class="tooltip">Add Teacher</span>
+  </button>
+  <button class="nav-btn" onclick="switchPanel('query')" title="Query Teachers">
+    🔍<span class="tooltip">Search & Filter</span>
+  </button>
+  <button class="nav-btn" onclick="switchPanel('all')" title="All Teachers">
+    👥<span class="tooltip">All Teachers</span>
+  </button>
+  <button class="nav-btn" onclick="switchPanel('delete')" title="Delete Teacher">
+    🗑️<span class="tooltip">Delete by ID</span>
+  </button>
+  <button class="nav-btn" onclick="switchPanel('update')" title="Update Teacher">
+    ✏️<span class="tooltip">Update by ID</span>
+  </button>
+</nav>
+
+<!-- TOASTS -->
+<div class="toast-container" id="toasts"></div>
+
+<!-- MODAL (Update) -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">✏️ Update Teacher</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="form-grid" id="modal-form-grid">
+      <div class="form-group">
+        <label>Name</label>
+        <input type="text" id="m-name" placeholder="Full Name">
+      </div>
+      <div class="form-group">
+        <label>Position</label>
+        <input type="text" id="m-position" placeholder="e.g. Professor">
+      </div>
+      <div class="form-group">
+        <label>Age</label>
+        <input type="number" id="m-age" placeholder="Age">
+      </div>
+      <div class="form-group">
+        <label>Gender</label>
+        <select id="m-gender">
+          <option value="">Select</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Department</label>
+        <input type="text" id="m-department" placeholder="Department">
+      </div>
+      <div class="form-group">
+        <label>Salary (₹)</label>
+        <input type="number" id="m-salary" placeholder="Monthly Salary">
+      </div>
+      <div class="form-group full">
+        <label>Experience (years)</label>
+        <input type="number" id="m-experience" placeholder="Years of Experience">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitUpdate()">💾 Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div class="page-title"><span>Teach</span>Hub</div>
+    <div class="base-url-badge">
+      <div class="dot"></div>
+      <span style="color:var(--text3)">API: </span>
+      <input type="text" id="baseUrl" value="http://localhost:6969" placeholder="http://localhost:8080">
+    </div>
+  </div>
+
+  <div class="panels">
+
+    <!-- ===== ADD TEACHER PANEL ===== -->
+    <div class="panel active" id="panel-add">
+      <div class="card">
+        <div class="card-title">
+          <div class="icon">➕</div>
+          Add New Teacher
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Name</label>
+            <input type="text" id="a-name" placeholder="Full Name">
+          </div>
+          <div class="form-group">
+            <label>Position</label>
+            <input type="text" id="a-position" placeholder="e.g. Professor, Lecturer">
+          </div>
+          <div class="form-group">
+            <label>Age</label>
+            <input type="number" id="a-age" placeholder="Age">
+          </div>
+          <div class="form-group">
+            <label>Gender</label>
+            <select id="a-gender">
+              <option value="">Select Gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Department</label>
+            <input type="text" id="a-department" placeholder="Department">
+          </div>
+          <div class="form-group">
+            <label>Salary (₹)</label>
+            <input type="number" id="a-salary" placeholder="Monthly Salary">
+          </div>
+          <div class="form-group full">
+            <label>Experience (years)</label>
+            <input type="number" id="a-experience" placeholder="Years of Experience">
+          </div>
+          <div class="form-group full">
+            <button class="btn btn-primary" onclick="addTeacher()">
+              <span class="spinner" id="add-spinner"></span>
+              ➕ Add Teacher
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">
+          <div class="icon">📦</div>
+          Response
+        </div>
+        <div class="response-box" id="add-response"></div>
+        <div style="color:var(--text3); font-size:13px;" id="add-empty">Submit the form to see the response here.</div>
+      </div>
+    </div>
+
+    <!-- ===== QUERY PANEL ===== -->
+    <div class="panel" id="panel-query">
+      <div class="card">
+        <div class="card-title">
+          <div class="icon">🔍</div>
+          Search & Filter Teachers
+        </div>
+
+        <div class="filter-chips" id="filter-chips">
+          <div class="chip active" onclick="selectFilter('getById')" id="chip-getById">By ID</div>
+          <div class="chip" onclick="selectFilter('getByName')" id="chip-getByName">By Name</div>
+          <div class="chip" onclick="selectFilter('getAboveAge')" id="chip-getAboveAge">Age ≥</div>
+          <div class="chip" onclick="selectFilter('getBelowAge')" id="chip-getBelowAge">Age ≤</div>
+          <div class="chip" onclick="selectFilter('getByPosition')" id="chip-getByPosition">By Position</div>
+          <div class="chip" onclick="selectFilter('getByGender')" id="chip-getByGender">By Gender</div>
+          <div class="chip" onclick="selectFilter('getAboveEx')" id="chip-getAboveEx">Exp ≥</div>
+          <div class="chip" onclick="selectFilter('getBelowEx')" id="chip-getBelowEx">Exp ≤</div>
+          <div class="chip" onclick="selectFilter('getName')" id="chip-getName">Names Only</div>
+          <div class="chip" onclick="selectFilter('getDepartment')" id="chip-getDepartment">Departments</div>
+          <div class="chip" onclick="selectFilter('getSalary')" id="chip-getSalary">Salaries</div>
+        </div>
+
+        <div class="section-sep"></div>
+        <div style="margin-top:16px">
+          <div id="filter-inputs"></div>
+          <div style="margin-top:14px">
+            <button class="btn btn-primary" onclick="runQuery()">
+              <span class="spinner" id="q-spinner"></span>
+              🔎 Run Query
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="query-result-card">
+        <div class="card-title">
+          <div class="icon">📊</div>
+          Results
+        </div>
+        <div id="query-result">
+          <div class="empty-state">
+            <div class="icon">🎯</div>
+            Select a filter and run a query
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ALL TEACHERS PANEL ===== -->
+    <div class="panel" id="panel-all">
+      <div class="stats-row" id="stats-row">
+        <div class="stat-card green">
+          <div class="stat-label">Total Teachers</div>
+          <div class="stat-value" id="stat-total">—</div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-label">Avg Age</div>
+          <div class="stat-value" id="stat-age">—</div>
+        </div>
+        <div class="stat-card amber">
+          <div class="stat-label">Avg Experience</div>
+          <div class="stat-value" id="stat-exp">—</div>
+        </div>
+        <div class="stat-card purple">
+          <div class="stat-label">Avg Salary</div>
+          <div class="stat-value" id="stat-salary">—</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="icon">👥</div>
+            All Teachers
+          </div>
+          <button class="btn btn-ghost" onclick="loadAll()">🔄 Refresh</button>
+        </div>
+        <div id="all-table">
+          <div class="empty-state">
+            <div class="icon">📋</div>
+            Click Refresh to load all teachers
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== DELETE BY ID PANEL ===== -->
+    <div class="panel" id="panel-delete">
+      <div class="card">
+        <div class="card-title">
+          <div class="icon">🗑️</div>
+          Delete Teacher by ID
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Teacher ID</label>
+            <input type="number" id="del-id" placeholder="Enter Teacher ID">
+          </div>
+          <div class="form-group full">
+            <button class="btn btn-danger" style="width:fit-content" onclick="deleteTeacherById()">
+              <span class="spinner" id="del-spinner"></span>
+              🗑️ Delete Teacher
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">
+          <div class="icon">📦</div>
+          Response
+        </div>
+        <div class="response-box" id="del-response"></div>
+        <div style="color:var(--text3); font-size:13px;" id="del-empty">Enter an ID and click Delete to see the response.</div>
+      </div>
+    </div>
+
+    <!-- ===== UPDATE BY ID PANEL ===== -->
+    <div class="panel" id="panel-update">
+      <div class="card">
+        <div class="card-title">
+          <div class="icon">✏️</div>
+          Update Teacher by ID
+        </div>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Teacher ID (to update)</label>
+            <input type="number" id="upd-id" placeholder="Enter Teacher ID">
+          </div>
+          <div class="form-group">
+            <label>Name</label>
+            <input type="text" id="upd-name" placeholder="Full Name">
+          </div>
+          <div class="form-group">
+            <label>Position</label>
+            <input type="text" id="upd-position" placeholder="e.g. Professor">
+          </div>
+          <div class="form-group">
+            <label>Age</label>
+            <input type="number" id="upd-age" placeholder="Age">
+          </div>
+          <div class="form-group">
+            <label>Gender</label>
+            <select id="upd-gender">
+              <option value="">Select Gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Department</label>
+            <input type="text" id="upd-department" placeholder="Department">
+          </div>
+          <div class="form-group">
+            <label>Salary (₹)</label>
+            <input type="number" id="upd-salary" placeholder="Monthly Salary">
+          </div>
+          <div class="form-group full">
+            <label>Experience (years)</label>
+            <input type="number" id="upd-experience" placeholder="Years of Experience">
+          </div>
+          <div class="form-group full">
+            <button class="btn btn-primary" onclick="updateTeacherById()">
+              <span class="spinner" id="upd-spinner"></span>
+              💾 Update Teacher
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">
+          <div class="icon">📦</div>
+          Response
+        </div>
+        <div class="response-box" id="upd-response"></div>
+        <div style="color:var(--text3); font-size:13px;" id="upd-empty">Enter ID with updated details and click Update.</div>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<!-- FOOTER -->
+<footer style="
+  position: fixed;
+  bottom: 0; left: 72px; right: 0;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  padding: 14px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  z-index: 99;
+">
+  <div style="display:flex; align-items:center; gap:16px;">
+    <div style="
+      width: 40px; height: 40px;
+      background: var(--accent-glow);
+      border: 1px solid var(--accent);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 16px;
+      color: var(--accent);
+    ">TP</div>
+    <div>
+      <div style="font-family:'Syne',sans-serif; font-weight:600; font-size:14px; color:var(--text);">Tejas Pawar</div>
+      <div style="font-size:12px; color:var(--text3); margin-top:2px;">
+        <a href="mailto:tejaspawar699@gmail.com" style="color:var(--accent2); text-decoration:none;">tejaspawar699@gmail.com</a>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex; align-items:center; gap:24px; flex-wrap:wrap;">
+    <div style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text3);">
+      <span style="color:var(--green);">⚙️</span> Built with Spring Boot + MySQL
+    </div>
+    <div style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text3);">
+      <span style="color:var(--blue);">☕</span> Java · JPA · REST API
+    </div>
+    <div style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text3);">
+      <span style="color:var(--amber);">🎓</span> Teacher Management System
+    </div>
+  </div>
+
+  <div style="font-size:12px; color:var(--text3); text-align:right;">
+    <div>© 2026 Tejas Pawar. All rights reserved.</div>
+    <div style="margin-top:4px;">Made with <span style="color:var(--red);">♥</span> in India 🇮🇳</div>
+  </div>
+</footer>
+
+<script>
+const BASE = () => document.getElementById('baseUrl').value.replace(/\/$/, '');
+
+let currentFilter = 'getById';
+let editingId = null;
+
+// PANEL SWITCHING
+function switchPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (name === 'all') { loadAll(); }
+}
+
+// TOAST
+function toast(msg, type = 'success') {
+  const tc = document.getElementById('toasts');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.innerHTML = `<span class="dot-toast"></span><span>${msg}</span>`;
+  tc.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+// ADD TEACHER
+async function addTeacher() {
+  const body = {
+    name: document.getElementById('a-name').value,
+    position: document.getElementById('a-position').value,
+    age: parseInt(document.getElementById('a-age').value),
+    gender: document.getElementById('a-gender').value,
+    department: document.getElementById('a-department').value,
+    salary: parseFloat(document.getElementById('a-salary').value),
+    experience: parseInt(document.getElementById('a-experience').value)
+  };
+
+  const sp = document.getElementById('add-spinner');
+  const rb = document.getElementById('add-response');
+  const ae = document.getElementById('add-empty');
+  sp.classList.add('visible');
+
+  try {
+    const res = await fetch(`${BASE()}/teacher/add`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    rb.textContent = JSON.stringify(data, null, 2);
+    rb.className = 'response-box visible';
+    ae.style.display = 'none';
+    toast('Teacher added successfully! 🎉');
+    clearAddForm();
+  } catch (e) {
+    rb.textContent = 'Error: ' + e.message + '\n\nMake sure your Spring Boot server is running.';
+    rb.className = 'response-box error visible';
+    ae.style.display = 'none';
+    toast('Failed to connect to API', 'error');
+  } finally {
+    sp.classList.remove('visible');
+  }
+}
+
+function clearAddForm() {
+  ['a-name','a-position','a-age','a-gender','a-department','a-salary','a-experience'].forEach(id => {
+    const el = document.getElementById(id);
+    el.value = '';
+  });
+}
+
+// FILTER SYSTEM
+const filterConfig = {
+  getById: { label: 'Teacher ID', type: 'number', placeholder: 'Enter ID' },
+  getByName: { label: 'Teacher Name', type: 'text', placeholder: 'Enter Name' },
+  getAboveAge: { label: 'Minimum Age', type: 'number', placeholder: 'e.g. 30' },
+  getBelowAge: { label: 'Maximum Age', type: 'number', placeholder: 'e.g. 60' },
+  getByPosition: { label: 'Position', type: 'text', placeholder: 'e.g. Professor' },
+  getByGender: { label: 'Gender', type: 'select', options: ['Male','Female','Other'] },
+  getAboveEx: { label: 'Min Experience (yrs)', type: 'number', placeholder: 'e.g. 5' },
+  getBelowEx: { label: 'Max Experience (yrs)', type: 'number', placeholder: 'e.g. 15' },
+  getName: { label: 'Name to search', type: 'text', placeholder: 'Enter Name' },
+  getDepartment: { label: 'Department', type: 'text', placeholder: 'e.g. Mathematics' },
+  getSalary: { label: 'Exact Salary', type: 'number', placeholder: 'e.g. 50000' },
+};
+
+function selectFilter(key) {
+  currentFilter = key;
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  document.getElementById('chip-' + key).classList.add('active');
+  const cfg = filterConfig[key];
+  const div = document.getElementById('filter-inputs');
+  if (cfg.type === 'select') {
+    div.innerHTML = `
+      <div class="form-group" style="max-width:320px">
+        <label>${cfg.label}</label>
+        <select id="q-val">
+          ${cfg.options.map(o => `<option value="${o}">${o}</option>`).join('')}
+        </select>
+      </div>`;
+  } else {
+    div.innerHTML = `
+      <div class="form-group" style="max-width:320px">
+        <label>${cfg.label}</label>
+        <input type="${cfg.type}" id="q-val" placeholder="${cfg.placeholder}">
+      </div>`;
+  }
+}
+
+selectFilter('getById');
+
+async function runQuery() {
+  const val = document.getElementById('q-val').value;
+  if (!val) { toast('Please enter a value', 'error'); return; }
+
+  const sp = document.getElementById('q-spinner');
+  sp.classList.add('visible');
+
+  const endpointMap = {
+    getById: `/teacher/getById/${val}`,
+    getByName: `/teacher/getByName/${val}`,
+    getAboveAge: `/teacher/getAboveAge/${val}`,
+    getBelowAge: `/teacher/getBelowAge/${val}`,
+    getByPosition: `/teacher/getByPosition/${val}`,
+    getByGender: `/teacher/getByGender/${val}`,
+    getAboveEx: `/teacher/getAboveEx/${val}`,
+    getBelowEx: `/teacher/getBelowEx/${val}`,
+    getName: `/teacher/getName/${val}`,
+    getDepartment: `/teacher/getDepartment/${val}`,
+    getSalary: `/teacher/getSalary/${val}`,
+  };
+
+  const isTableEndpoint = ['getById','getByName','getAboveAge','getBelowAge','getByPosition','getByGender','getAboveEx','getBelowEx'].includes(currentFilter);
+  const rd = document.getElementById('query-result');
+
+  try {
+    const res = await fetch(BASE() + endpointMap[currentFilter]);
+    const rawText = await res.text();
+
+    // Try to parse as JSON, else treat as plain string (ResourceNotFoundException message)
+    let data;
+    let isJson = false;
+    try {
+      data = JSON.parse(rawText);
+      isJson = true;
+    } catch(_) {
+      data = rawText;
+    }
+
+    if (!isJson || typeof data === 'string') {
+      // Plain string response — ResourceNotFoundException ya success message
+      const isError = !res.ok;
+      rd.innerHTML = `<div class="response-box ${isError ? 'error' : ''} visible">${data}</div>`;
+      if (isError) toast(data, 'error');
+    } else if (isTableEndpoint) {
+      const arr = Array.isArray(data) ? data : [data];
+      if (arr.length === 0) {
+        rd.innerHTML = `<div class="empty-state"><div class="icon">🔍</div>No results found</div>`;
+      } else {
+        rd.innerHTML = buildTable(arr, true);
+        toast(`Query returned ${arr.length} result(s)`);
+      }
+    } else {
+      const arr = Array.isArray(data) ? data : [data];
+      rd.innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:8px">
+          ${arr.map(item => `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-size:14px;color:var(--text)">${item}</div>`).join('')}
+        </div>`;
+      toast(`Query returned ${arr.length} result(s)`);
+    }
+  } catch (e) {
+    rd.innerHTML = `<div class="response-box error visible">Server se connect nahi ho pa raha.\nMake sure Spring Boot app chal raha hai at ${BASE()}</div>`;
+    toast('Server se connect nahi hua', 'error');
+  } finally {
+    sp.classList.remove('visible');
+  }
+}
+
+// ALL TEACHERS
+async function loadAll() {
+  const td = document.getElementById('all-table');
+  td.innerHTML = `<div class="empty-state"><div class="icon" style="animation:spin 1s linear infinite;display:inline-block">⟳</div><br>Loading...</div>`;
+  try {
+    const res = await fetch(`${BASE()}/teacher/getAll`);
+    const data = await res.json();
+
+    if (!Array.isArray(data) || data.length === 0) {
+      td.innerHTML = `<div class="empty-state"><div class="icon">📭</div>No teachers found</div>`;
+      return;
+    }
+
+    // Stats
+    document.getElementById('stat-total').textContent = data.length;
+    document.getElementById('stat-age').textContent = Math.round(data.reduce((s,t) => s + t.age, 0) / data.length);
+    document.getElementById('stat-exp').textContent = Math.round(data.reduce((s,t) => s + t.experience, 0) / data.length) + 'y';
+    const avgSal = Math.round(data.reduce((s,t) => s + t.salary, 0) / data.length);
+    document.getElementById('stat-salary').textContent = '₹' + avgSal.toLocaleString('en-IN');
+
+    td.innerHTML = buildTable(data, false);
+  } catch(e) {
+    td.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div>${e.message}</div>`;
+    toast('Failed to load teachers', 'error');
+  }
+}
+
+// BUILD TABLE
+function buildTable(data, compact) {
+  const arr = Array.isArray(data) ? data : [data];
+  const genderBadge = g => {
+    if (!g) return '';
+    const map = { 'Male': 'badge-blue', 'Female': 'badge-purple', 'Other': 'badge-amber' };
+    return `<span class="badge ${map[g] || 'badge-blue'}">${g}</span>`;
+  };
+  const expBadge = e => {
+    if (e === undefined) return '';
+    const cls = e >= 15 ? 'badge-green' : e >= 5 ? 'badge-amber' : 'badge-red';
+    return `<span class="badge ${cls}">${e}y</span>`;
+  };
+
+  return `
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Position</th>
+            <th>Dept</th>
+            <th>Age</th>
+            <th>Gender</th>
+            <th>Salary</th>
+            <th>Exp</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${arr.map(t => `
+            <tr>
+              <td><span class="badge badge-purple">#${t.id}</span></td>
+              <td class="name-cell">${t.name || '—'}</td>
+              <td>${t.position || '—'}</td>
+              <td>${t.department || '—'}</td>
+              <td>${t.age || '—'}</td>
+              <td>${genderBadge(t.gender)}</td>
+              <td>₹${t.salary ? Number(t.salary).toLocaleString('en-IN') : '—'}</td>
+              <td>${expBadge(t.experience)}</td>
+              <td>
+                <div class="actions-cell">
+                  <button class="btn btn-edit btn-sm" onclick="openUpdate(${JSON.stringify(t).replace(/"/g,'&quot;')})">✏️ Edit</button>
+                  <button class="btn btn-danger btn-sm" onclick="deleteTeacher(${t.id})">🗑️ Del</button>
+                </div>
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+// DELETE (from table rows - shows toast)
+async function deleteTeacher(id) {
+  if (!confirm(`Delete teacher #${id}? This cannot be undone.`)) return;
+  try {
+    const res = await fetch(`${BASE()}/teacher/delete/${id}`, { method: 'DELETE' });
+    const text = await res.text();
+    toast(text || `Teacher #${id} deleted`);
+    loadAll();
+  } catch(e) {
+    toast('Delete failed: ' + e.message, 'error');
+  }
+}
+
+// DELETE BY ID (dedicated panel)
+async function deleteTeacherById() {
+  const id = document.getElementById('del-id').value;
+  if (!id) { toast('Please enter an ID', 'error'); return; }
+
+  const sp = document.getElementById('del-spinner');
+  const rb = document.getElementById('del-response');
+  const de = document.getElementById('del-empty');
+  sp.classList.add('visible');
+
+  try {
+    const res = await fetch(`${BASE()}/teacher/delete/${id}`, { method: 'DELETE' });
+    const text = await res.text();
+    // Always plain string — success ya ResourceNotFoundException
+    rb.textContent = text;
+    rb.className = `response-box ${res.ok ? '' : 'error'} visible`;
+    de.style.display = 'none';
+    if (res.ok) toast(text);
+    else toast(text, 'error');
+  } catch(e) {
+    rb.textContent = 'Server se connect nahi ho pa raha.\nMake sure Spring Boot app chal raha hai at ' + BASE();
+    rb.className = 'response-box error visible';
+    de.style.display = 'none';
+    toast('Server se connect nahi hua', 'error');
+  } finally {
+    sp.classList.remove('visible');
+  }
+}
+
+// UPDATE BY ID (dedicated panel)
+async function updateTeacherById() {
+  const id = document.getElementById('upd-id').value;
+  if (!id) { toast('Please enter an ID', 'error'); return; }
+
+  const body = {
+    name: document.getElementById('upd-name').value,
+    position: document.getElementById('upd-position').value,
+    age: parseInt(document.getElementById('upd-age').value),
+    gender: document.getElementById('upd-gender').value,
+    department: document.getElementById('upd-department').value,
+    salary: parseFloat(document.getElementById('upd-salary').value),
+    experience: parseInt(document.getElementById('upd-experience').value)
+  };
+
+  const sp = document.getElementById('upd-spinner');
+  const rb = document.getElementById('upd-response');
+  const ue = document.getElementById('upd-empty');
+  sp.classList.add('visible');
+
+  try {
+    const res = await fetch(`${BASE()}/teacher/update/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const rawText = await res.text();
+    let display;
+    try { display = JSON.stringify(JSON.parse(rawText), null, 2); }
+    catch(_) { display = rawText; }
+    rb.textContent = display;
+    rb.className = `response-box ${res.ok ? '' : 'error'} visible`;
+    ue.style.display = 'none';
+    if (res.ok) toast(`Teacher #${id} updated successfully! ✅`);
+    else toast(rawText, 'error');
+  } catch(e) {
+    rb.textContent = 'Server se connect nahi ho pa raha.\nMake sure Spring Boot app chal raha hai at ' + BASE();
+    rb.className = 'response-box error visible';
+    ue.style.display = 'none';
+    toast('Server se connect nahi hua', 'error');
+  } finally {
+    sp.classList.remove('visible');
+  }
+}
+
+// UPDATE MODAL
+function openUpdate(teacher) {
+  editingId = teacher.id;
+  document.getElementById('m-name').value = teacher.name || '';
+  document.getElementById('m-position').value = teacher.position || '';
+  document.getElementById('m-age').value = teacher.age || '';
+  document.getElementById('m-gender').value = teacher.gender || '';
+  document.getElementById('m-department').value = teacher.department || '';
+  document.getElementById('m-salary').value = teacher.salary || '';
+  document.getElementById('m-experience').value = teacher.experience || '';
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  editingId = null;
+}
+
+async function submitUpdate() {
+  if (!editingId) return;
+  const body = {
+    name: document.getElementById('m-name').value,
+    position: document.getElementById('m-position').value,
+    age: parseInt(document.getElementById('m-age').value),
+    gender: document.getElementById('m-gender').value,
+    department: document.getElementById('m-department').value,
+    salary: parseFloat(document.getElementById('m-salary').value),
+    experience: parseInt(document.getElementById('m-experience').value)
+  };
+  try {
+    const res = await fetch(`${BASE()}/teacher/update/${editingId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    closeModal();
+    toast(`Teacher #${editingId} updated! ✅`);
+    loadAll();
+  } catch(e) {
+    toast('Update failed: ' + e.message, 'error');
+  }
+}
+
+// Close modal on overlay click
+document.getElementById('modalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
+</body>
+</html>
