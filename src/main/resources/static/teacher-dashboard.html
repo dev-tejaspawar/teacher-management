@@ -552,7 +552,7 @@
     /* Main content */
     .main {
       margin-left: 0;
-      padding: 16px 16px 200px 16px;
+      padding: 16px 16px 80px 16px;
     }
 
     /* Topbar */
@@ -616,20 +616,20 @@
 
     .modal .form-grid { grid-template-columns: 1fr; }
 
-    /* Footer */
+    /* Footer — mobile pe fixed nahi, normal flow mein */
     footer {
-      left: 0 !important;
-      bottom: 60px !important;
+      position: static !important;
+      left: auto !important;
+      bottom: auto !important;
       flex-direction: column;
       align-items: flex-start;
       gap: 6px;
-      padding: 10px 16px;
+      padding: 12px 16px;
       font-size: 11px;
+      margin-bottom: 60px; /* space for bottom navbar */
     }
 
     footer > div:last-child { text-align: left; }
-
-    /* Hide middle section of footer on mobile to save space */
     footer > div:nth-child(2) { display: none; }
 
     /* Buttons full width on mobile */
@@ -1049,7 +1049,7 @@
 
   <div style="font-size:12px; color:var(--text3); text-align:right;">
     <div>© 2026 Tejas Pawar. All rights reserved.</div>
-    <div style="margin-top:4px;">Made with <span style="color:var(--red);">♥</span> in India 🇮🇳</div>
+    <div style="margin-top:4px;">Made with <span style="color:var(--red);">♥️</span> in India 🇮🇳</div>
   </div>
 </footer>
 
@@ -1073,7 +1073,7 @@ function toast(msg, type = 'success') {
   const tc = document.getElementById('toasts');
   const t = document.createElement('div');
   t.className = 'toast ' + type;
-  t.innerHTML = `<span class="dot-toast"></span><span>${msg}</span>`;
+  t.innerHTML = <span class="dot-toast"></span><span>${msg}</span>;
   tc.appendChild(t);
   setTimeout(() => t.remove(), 3500);
 }
@@ -1096,7 +1096,7 @@ async function addTeacher() {
   sp.classList.add('visible');
 
   try {
-    const res = await fetch(`${BASE()}/teacher/add`, {
+    const res = await fetch(${BASE()}/teacher/add, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
@@ -1150,7 +1150,7 @@ function selectFilter(key) {
       <div class="form-group" style="max-width:320px">
         <label>${cfg.label}</label>
         <select id="q-val">
-          ${cfg.options.map(o => `<option value="${o}">${o}</option>`).join('')}
+          ${cfg.options.map(o => <option value="${o}">${o}</option>).join('')}
         </select>
       </div>`;
   } else {
@@ -1172,17 +1172,17 @@ async function runQuery() {
   sp.classList.add('visible');
 
   const endpointMap = {
-    getById: `/teacher/getById/${val}`,
-    getByName: `/teacher/getByName/${val}`,
-    getAboveAge: `/teacher/getAboveAge/${val}`,
-    getBelowAge: `/teacher/getBelowAge/${val}`,
-    getByPosition: `/teacher/getByPosition/${val}`,
-    getByGender: `/teacher/getByGender/${val}`,
-    getAboveEx: `/teacher/getAboveEx/${val}`,
-    getBelowEx: `/teacher/getBelowEx/${val}`,
-    getName: `/teacher/getName/${val}`,
-    getDepartment: `/teacher/getDepartment/${val}`,
-    getSalary: `/teacher/getSalary/${val}`,
+    getById: /teacher/getById/${val},
+    getByName: /teacher/getByName/${val},
+    getAboveAge: /teacher/getAboveAge/${val},
+    getBelowAge: /teacher/getBelowAge/${val},
+    getByPosition: /teacher/getByPosition/${val},
+    getByGender: /teacher/getByGender/${val},
+    getAboveEx: /teacher/getAboveEx/${val},
+    getBelowEx: /teacher/getBelowEx/${val},
+    getName: /teacher/getName/${val},
+    getDepartment: /teacher/getDepartment/${val},
+    getSalary: /teacher/getSalary/${val},
   };
 
   const isTableEndpoint = ['getById','getByName','getAboveAge','getBelowAge','getByPosition','getByGender','getAboveEx','getBelowEx'].includes(currentFilter);
@@ -1205,26 +1205,26 @@ async function runQuery() {
     if (!isJson || typeof data === 'string') {
       // Plain string response — ResourceNotFoundException ya success message
       const isError = !res.ok;
-      rd.innerHTML = `<div class="response-box ${isError ? 'error' : ''} visible">${data}</div>`;
+      rd.innerHTML = <div class="response-box ${isError ? 'error' : ''} visible">${data}</div>;
       if (isError) toast(data, 'error');
     } else if (isTableEndpoint) {
       const arr = Array.isArray(data) ? data : [data];
       if (arr.length === 0) {
-        rd.innerHTML = `<div class="empty-state"><div class="icon">🔍</div>No results found</div>`;
+        rd.innerHTML = <div class="empty-state"><div class="icon">🔍</div>No results found</div>;
       } else {
         rd.innerHTML = buildTable(arr, true);
-        toast(`Query returned ${arr.length} result(s)`);
+        toast(Query returned ${arr.length} result(s));
       }
     } else {
       const arr = Array.isArray(data) ? data : [data];
       rd.innerHTML = `
         <div style="display:flex;flex-direction:column;gap:8px">
-          ${arr.map(item => `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-size:14px;color:var(--text)">${item}</div>`).join('')}
+          ${arr.map(item => <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-size:14px;color:var(--text)">${item}</div>).join('')}
         </div>`;
-      toast(`Query returned ${arr.length} result(s)`);
+      toast(Query returned ${arr.length} result(s));
     }
   } catch (e) {
-    rd.innerHTML = `<div class="response-box error visible">Server se connect nahi ho pa raha.\nMake sure Spring Boot app chal raha hai at ${BASE()}</div>`;
+    rd.innerHTML = <div class="response-box error visible">Server se connect nahi ho pa raha.\nMake sure Spring Boot app chal raha hai at ${BASE()}</div>;
     toast('Server se connect nahi hua', 'error');
   } finally {
     sp.classList.remove('visible');
@@ -1234,13 +1234,13 @@ async function runQuery() {
 // ALL TEACHERS
 async function loadAll() {
   const td = document.getElementById('all-table');
-  td.innerHTML = `<div class="empty-state"><div class="icon" style="animation:spin 1s linear infinite;display:inline-block">⟳</div><br>Loading...</div>`;
+  td.innerHTML = <div class="empty-state"><div class="icon" style="animation:spin 1s linear infinite;display:inline-block">⟳</div><br>Loading...</div>;
   try {
-    const res = await fetch(`${BASE()}/teacher/getAll`);
+    const res = await fetch(${BASE()}/teacher/getAll);
     const data = await res.json();
 
     if (!Array.isArray(data) || data.length === 0) {
-      td.innerHTML = `<div class="empty-state"><div class="icon">📭</div>No teachers found</div>`;
+      td.innerHTML = <div class="empty-state"><div class="icon">📭</div>No teachers found</div>;
       return;
     }
 
@@ -1253,7 +1253,7 @@ async function loadAll() {
 
     td.innerHTML = buildTable(data, false);
   } catch(e) {
-    td.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div>${e.message}</div>`;
+    td.innerHTML = <div class="empty-state"><div class="icon">⚠️</div>${e.message}</div>;
     toast('Failed to load teachers', 'error');
   }
 }
@@ -1264,12 +1264,12 @@ function buildTable(data, compact) {
   const genderBadge = g => {
     if (!g) return '';
     const map = { 'Male': 'badge-blue', 'Female': 'badge-purple', 'Other': 'badge-amber' };
-    return `<span class="badge ${map[g] || 'badge-blue'}">${g}</span>`;
+    return <span class="badge ${map[g] || 'badge-blue'}">${g}</span>;
   };
   const expBadge = e => {
     if (e === undefined) return '';
     const cls = e >= 15 ? 'badge-green' : e >= 5 ? 'badge-amber' : 'badge-red';
-    return `<span class="badge ${cls}">${e}y</span>`;
+    return <span class="badge ${cls}">${e}y</span>;
   };
 
   return `
@@ -1313,11 +1313,11 @@ function buildTable(data, compact) {
 
 // DELETE (from table rows - shows toast)
 async function deleteTeacher(id) {
-  if (!confirm(`Delete teacher #${id}? This cannot be undone.`)) return;
+  if (!confirm(Delete teacher #${id}? This cannot be undone.)) return;
   try {
-    const res = await fetch(`${BASE()}/teacher/delete/${id}`, { method: 'DELETE' });
+    const res = await fetch(${BASE()}/teacher/delete/${id}, { method: 'DELETE' });
     const text = await res.text();
-    toast(text || `Teacher #${id} deleted`);
+    toast(text || Teacher #${id} deleted);
     loadAll();
   } catch(e) {
     toast('Delete failed: ' + e.message, 'error');
@@ -1335,11 +1335,11 @@ async function deleteTeacherById() {
   sp.classList.add('visible');
 
   try {
-    const res = await fetch(`${BASE()}/teacher/delete/${id}`, { method: 'DELETE' });
+    const res = await fetch(${BASE()}/teacher/delete/${id}, { method: 'DELETE' });
     const text = await res.text();
     // Always plain string — success ya ResourceNotFoundException
     rb.textContent = text;
-    rb.className = `response-box ${res.ok ? '' : 'error'} visible`;
+    rb.className = response-box ${res.ok ? '' : 'error'} visible;
     de.style.display = 'none';
     if (res.ok) toast(text);
     else toast(text, 'error');
@@ -1374,7 +1374,7 @@ async function updateTeacherById() {
   sp.classList.add('visible');
 
   try {
-    const res = await fetch(`${BASE()}/teacher/update/${id}`, {
+    const res = await fetch(${BASE()}/teacher/update/${id}, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
@@ -1384,9 +1384,9 @@ async function updateTeacherById() {
     try { display = JSON.stringify(JSON.parse(rawText), null, 2); }
     catch(_) { display = rawText; }
     rb.textContent = display;
-    rb.className = `response-box ${res.ok ? '' : 'error'} visible`;
+    rb.className = response-box ${res.ok ? '' : 'error'} visible;
     ue.style.display = 'none';
-    if (res.ok) toast(`Teacher #${id} updated successfully! ✅`);
+    if (res.ok) toast(Teacher #${id} updated successfully! ✅);
     else toast(rawText, 'error');
   } catch(e) {
     rb.textContent = 'Server se connect nahi ho pa raha.\nMake sure Spring Boot app chal raha hai at ' + BASE();
@@ -1428,14 +1428,14 @@ async function submitUpdate() {
     experience: parseInt(document.getElementById('m-experience').value)
   };
   try {
-    const res = await fetch(`${BASE()}/teacher/update/${editingId}`, {
+    const res = await fetch(${BASE()}/teacher/update/${editingId}, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     });
     const data = await res.json();
     closeModal();
-    toast(`Teacher #${editingId} updated! ✅`);
+    toast(Teacher #${editingId} updated! ✅);
     loadAll();
   } catch(e) {
     toast('Update failed: ' + e.message, 'error');
