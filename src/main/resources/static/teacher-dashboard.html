@@ -526,7 +526,7 @@
     /* Sidebar — bottom navbar on mobile */
     .sidebar {
       top: auto;
-      bottom: 60px; /* above footer */
+      bottom: 0; /* fixed at very bottom */
       left: 0; right: 0;
       width: 100%;
       height: 60px;
@@ -552,7 +552,7 @@
     /* Main content */
     .main {
       margin-left: 0;
-      padding: 16px 16px 80px 16px;
+      padding: 16px 16px 140px 16px;
     }
 
     /* Topbar */
@@ -626,14 +626,14 @@
       gap: 6px;
       padding: 12px 16px;
       font-size: 11px;
-      margin-bottom: 60px; /* space for bottom navbar */
+      margin-bottom: 70px; /* space for bottom navbar */
     }
 
     footer > div:last-child { text-align: left; }
     footer > div:nth-child(2) { display: none; }
 
     /* Buttons full width on mobile */
-    .btn-primary { width: 100%; justify-content: center; }
+    .btn-primary, .btn-danger { width: 100%; justify-content: center; }
 
     /* Query row */
     .query-row { flex-direction: column; }
@@ -678,19 +678,19 @@
 <!-- SIDEBAR -->
 <nav class="sidebar">
   <div class="logo-mark">T</div>
-  <button class="nav-btn active" onclick="switchPanel('add')" title="Add Teacher">
+  <button class="nav-btn active" onclick="switchPanel('add', this)" title="Add Teacher">
     ➕<span class="tooltip">Add Teacher</span>
   </button>
-  <button class="nav-btn" onclick="switchPanel('query')" title="Query Teachers">
+  <button class="nav-btn" onclick="switchPanel('query', this)" title="Query Teachers">
     🔍<span class="tooltip">Search & Filter</span>
   </button>
-  <button class="nav-btn" onclick="switchPanel('all')" title="All Teachers">
+  <button class="nav-btn" onclick="switchPanel('all', this)" title="All Teachers">
     👥<span class="tooltip">All Teachers</span>
   </button>
-  <button class="nav-btn" onclick="switchPanel('delete')" title="Delete Teacher">
+  <button class="nav-btn" onclick="switchPanel('delete', this)" title="Delete Teacher">
     🗑️<span class="tooltip">Delete by ID</span>
   </button>
-  <button class="nav-btn" onclick="switchPanel('update')" title="Update Teacher">
+  <button class="nav-btn" onclick="switchPanel('update', this)" title="Update Teacher">
     ✏️<span class="tooltip">Update by ID</span>
   </button>
 </nav>
@@ -1054,33 +1054,39 @@
 </footer>
 
 <script>
-const BASE = () => document.getElementById('baseUrl').value.replace(/\/$/, '');
+function BASE() { return document.getElementById('baseUrl').value.replace(/\/$/, ''); }
 
-let currentFilter = 'getById';
-let editingId = null;
+var currentFilter = 'getById';
+var editingId = null;
 
 // PANEL SWITCHING
-function switchPanel(name) {
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+function switchPanel(name, btn) {
+  document.querySelectorAll('.panel').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.nav-btn').forEach(function(b) { b.classList.remove('active'); });
   document.getElementById('panel-' + name).classList.add('active');
-  event.currentTarget.classList.add('active');
+  if (btn) btn.classList.add('active');
   if (name === 'all') { loadAll(); }
 }
 
 // TOAST
-function toast(msg, type = 'success') {
-  const tc = document.getElementById('toasts');
-  const t = document.createElement('div');
+function toast(msg, type) {
+  if (!type) type = 'success';
+  var tc = document.getElementById('toasts');
+  var t = document.createElement('div');
   t.className = 'toast ' + type;
-  t.innerHTML = <span class="dot-toast"></span><span>${msg}</span>;
+  var dot = document.createElement('span');
+  dot.className = 'dot-toast';
+  var txt = document.createElement('span');
+  txt.textContent = msg;
+  t.appendChild(dot);
+  t.appendChild(txt);
   tc.appendChild(t);
-  setTimeout(() => t.remove(), 3500);
+  setTimeout(function() { t.remove(); }, 3500);
 }
 
 // ADD TEACHER
 async function addTeacher() {
-  const body = {
+  var body = {
     name: document.getElementById('a-name').value,
     position: document.getElementById('a-position').value,
     age: parseInt(document.getElementById('a-age').value),
@@ -1090,22 +1096,22 @@ async function addTeacher() {
     experience: parseInt(document.getElementById('a-experience').value)
   };
 
-  const sp = document.getElementById('add-spinner');
-  const rb = document.getElementById('add-response');
-  const ae = document.getElementById('add-empty');
+  var sp = document.getElementById('add-spinner');
+  var rb = document.getElementById('add-response');
+  var ae = document.getElementById('add-empty');
   sp.classList.add('visible');
 
   try {
-    const res = await fetch(${BASE()}/teacher/add, {
+    var res = await fetch(BASE() + '/teacher/add', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     });
-    const data = await res.json();
+    var data = await res.json();
     rb.textContent = JSON.stringify(data, null, 2);
     rb.className = 'response-box visible';
     ae.style.display = 'none';
-    toast('Teacher added successfully! 🎉');
+    toast('Teacher added successfully!');
     clearAddForm();
   } catch (e) {
     rb.textContent = 'Error: ' + e.message + '\n\nMake sure your Spring Boot server is running.';
@@ -1118,113 +1124,103 @@ async function addTeacher() {
 }
 
 function clearAddForm() {
-  ['a-name','a-position','a-age','a-gender','a-department','a-salary','a-experience'].forEach(id => {
-    const el = document.getElementById(id);
-    el.value = '';
+  ['a-name','a-position','a-age','a-gender','a-department','a-salary','a-experience'].forEach(function(id) {
+    document.getElementById(id).value = '';
   });
 }
 
 // FILTER SYSTEM
-const filterConfig = {
-  getById: { label: 'Teacher ID', type: 'number', placeholder: 'Enter ID' },
-  getByName: { label: 'Teacher Name', type: 'text', placeholder: 'Enter Name' },
-  getAboveAge: { label: 'Minimum Age', type: 'number', placeholder: 'e.g. 30' },
-  getBelowAge: { label: 'Maximum Age', type: 'number', placeholder: 'e.g. 60' },
-  getByPosition: { label: 'Position', type: 'text', placeholder: 'e.g. Professor' },
-  getByGender: { label: 'Gender', type: 'select', options: ['Male','Female','Other'] },
-  getAboveEx: { label: 'Min Experience (yrs)', type: 'number', placeholder: 'e.g. 5' },
-  getBelowEx: { label: 'Max Experience (yrs)', type: 'number', placeholder: 'e.g. 15' },
-  getName: { label: 'Name to search', type: 'text', placeholder: 'Enter Name' },
-  getDepartment: { label: 'Department', type: 'text', placeholder: 'e.g. Mathematics' },
-  getSalary: { label: 'Exact Salary', type: 'number', placeholder: 'e.g. 50000' },
+var filterConfig = {
+  getById:      { label: 'Teacher ID',           type: 'number', placeholder: 'Enter ID' },
+  getByName:    { label: 'Teacher Name',          type: 'text',   placeholder: 'Enter Name' },
+  getAboveAge:  { label: 'Minimum Age',           type: 'number', placeholder: 'e.g. 30' },
+  getBelowAge:  { label: 'Maximum Age',           type: 'number', placeholder: 'e.g. 60' },
+  getByPosition:{ label: 'Position',              type: 'text',   placeholder: 'e.g. Professor' },
+  getByGender:  { label: 'Gender',                type: 'select', options: ['Male','Female','Other'] },
+  getAboveEx:   { label: 'Min Experience (yrs)',  type: 'number', placeholder: 'e.g. 5' },
+  getBelowEx:   { label: 'Max Experience (yrs)',  type: 'number', placeholder: 'e.g. 15' },
+  getName:      { label: 'Name to search',        type: 'text',   placeholder: 'Enter Name' },
+  getDepartment:{ label: 'Department',            type: 'text',   placeholder: 'e.g. Mathematics' },
+  getSalary:    { label: 'Exact Salary',          type: 'number', placeholder: 'e.g. 50000' }
 };
 
 function selectFilter(key) {
   currentFilter = key;
-  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.chip').forEach(function(c) { c.classList.remove('active'); });
   document.getElementById('chip-' + key).classList.add('active');
-  const cfg = filterConfig[key];
-  const div = document.getElementById('filter-inputs');
+  var cfg = filterConfig[key];
+  var div = document.getElementById('filter-inputs');
   if (cfg.type === 'select') {
-    div.innerHTML = `
-      <div class="form-group" style="max-width:320px">
-        <label>${cfg.label}</label>
-        <select id="q-val">
-          ${cfg.options.map(o => <option value="${o}">${o}</option>).join('')}
-        </select>
-      </div>`;
+    var opts = cfg.options.map(function(o) {
+      return '<option value="' + o + '">' + o + '</option>';
+    }).join('');
+    div.innerHTML = '<div class="form-group" style="max-width:320px"><label>' + cfg.label + '</label><select id="q-val">' + opts + '</select></div>';
   } else {
-    div.innerHTML = `
-      <div class="form-group" style="max-width:320px">
-        <label>${cfg.label}</label>
-        <input type="${cfg.type}" id="q-val" placeholder="${cfg.placeholder}">
-      </div>`;
+    div.innerHTML = '<div class="form-group" style="max-width:320px"><label>' + cfg.label + '</label><input type="' + cfg.type + '" id="q-val" placeholder="' + cfg.placeholder + '"></div>';
   }
 }
 
 selectFilter('getById');
 
 async function runQuery() {
-  const val = document.getElementById('q-val').value;
+  var val = document.getElementById('q-val').value;
   if (!val) { toast('Please enter a value', 'error'); return; }
 
-  const sp = document.getElementById('q-spinner');
+  var sp = document.getElementById('q-spinner');
   sp.classList.add('visible');
 
-  const endpointMap = {
-    getById: /teacher/getById/${val},
-    getByName: /teacher/getByName/${val},
-    getAboveAge: /teacher/getAboveAge/${val},
-    getBelowAge: /teacher/getBelowAge/${val},
-    getByPosition: /teacher/getByPosition/${val},
-    getByGender: /teacher/getByGender/${val},
-    getAboveEx: /teacher/getAboveEx/${val},
-    getBelowEx: /teacher/getBelowEx/${val},
-    getName: /teacher/getName/${val},
-    getDepartment: /teacher/getDepartment/${val},
-    getSalary: /teacher/getSalary/${val},
+  var endpointMap = {
+    getById:       '/teacher/getById/' + val,
+    getByName:     '/teacher/getByName/' + val,
+    getAboveAge:   '/teacher/getAboveAge/' + val,
+    getBelowAge:   '/teacher/getBelowAge/' + val,
+    getByPosition: '/teacher/getByPosition/' + val,
+    getByGender:   '/teacher/getByGender/' + val,
+    getAboveEx:    '/teacher/getAboveEx/' + val,
+    getBelowEx:    '/teacher/getBelowEx/' + val,
+    getName:       '/teacher/getName/' + val,
+    getDepartment: '/teacher/getDepartment/' + val,
+    getSalary:     '/teacher/getSalary/' + val
   };
 
-  const isTableEndpoint = ['getById','getByName','getAboveAge','getBelowAge','getByPosition','getByGender','getAboveEx','getBelowEx'].includes(currentFilter);
-  const rd = document.getElementById('query-result');
+  var isTableEndpoint = ['getById','getByName','getAboveAge','getBelowAge','getByPosition','getByGender','getAboveEx','getBelowEx'].indexOf(currentFilter) !== -1;
+  var rd = document.getElementById('query-result');
 
   try {
-    const res = await fetch(BASE() + endpointMap[currentFilter]);
-    const rawText = await res.text();
+    var res = await fetch(BASE() + endpointMap[currentFilter]);
+    var rawText = await res.text();
 
-    // Try to parse as JSON, else treat as plain string (ResourceNotFoundException message)
-    let data;
-    let isJson = false;
+    var data;
+    var isJson = false;
     try {
       data = JSON.parse(rawText);
       isJson = true;
-    } catch(_) {
+    } catch(ignored) {
       data = rawText;
     }
 
     if (!isJson || typeof data === 'string') {
-      // Plain string response — ResourceNotFoundException ya success message
-      const isError = !res.ok;
-      rd.innerHTML = <div class="response-box ${isError ? 'error' : ''} visible">${data}</div>;
-      if (isError) toast(data, 'error');
+      var errCls = !res.ok ? 'error' : '';
+      rd.innerHTML = '<div class="response-box ' + errCls + ' visible">' + data + '</div>';
+      if (!res.ok) toast(data, 'error');
     } else if (isTableEndpoint) {
-      const arr = Array.isArray(data) ? data : [data];
+      var arr = Array.isArray(data) ? data : [data];
       if (arr.length === 0) {
-        rd.innerHTML = <div class="empty-state"><div class="icon">🔍</div>No results found</div>;
+        rd.innerHTML = '<div class="empty-state"><div class="icon">&#128269;</div>No results found</div>';
       } else {
         rd.innerHTML = buildTable(arr, true);
-        toast(Query returned ${arr.length} result(s));
+        toast('Query returned ' + arr.length + ' result(s)');
       }
     } else {
-      const arr = Array.isArray(data) ? data : [data];
-      rd.innerHTML = `
-        <div style="display:flex;flex-direction:column;gap:8px">
-          ${arr.map(item => <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-size:14px;color:var(--text)">${item}</div>).join('')}
-        </div>`;
-      toast(Query returned ${arr.length} result(s));
+      var arr2 = Array.isArray(data) ? data : [data];
+      var items = arr2.map(function(item) {
+        return '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-size:14px;color:var(--text)">' + item + '</div>';
+      }).join('');
+      rd.innerHTML = '<div style="display:flex;flex-direction:column;gap:8px">' + items + '</div>';
+      toast('Query returned ' + arr2.length + ' result(s)');
     }
   } catch (e) {
-    rd.innerHTML = <div class="response-box error visible">Server se connect nahi ho pa raha.\nMake sure Spring Boot app chal raha hai at ${BASE()}</div>;
+    rd.innerHTML = '<div class="response-box error visible">Server se connect nahi ho pa raha. Make sure Spring Boot app chal raha hai at: ' + BASE() + '</div>';
     toast('Server se connect nahi hua', 'error');
   } finally {
     sp.classList.remove('visible');
@@ -1233,91 +1229,79 @@ async function runQuery() {
 
 // ALL TEACHERS
 async function loadAll() {
-  const td = document.getElementById('all-table');
-  td.innerHTML = <div class="empty-state"><div class="icon" style="animation:spin 1s linear infinite;display:inline-block">⟳</div><br>Loading...</div>;
+  var td = document.getElementById('all-table');
+  td.innerHTML = '<div class="empty-state"><div class="icon" style="animation:spin 1s linear infinite;display:inline-block">&#8987;</div><br>Loading...</div>';
   try {
-    const res = await fetch(${BASE()}/teacher/getAll);
-    const data = await res.json();
+    var res = await fetch(BASE() + '/teacher/getAll');
+    var data = await res.json();
 
     if (!Array.isArray(data) || data.length === 0) {
-      td.innerHTML = <div class="empty-state"><div class="icon">📭</div>No teachers found</div>;
+      td.innerHTML = '<div class="empty-state"><div class="icon">&#128237;</div>No teachers found</div>';
       return;
     }
 
-    // Stats
     document.getElementById('stat-total').textContent = data.length;
-    document.getElementById('stat-age').textContent = Math.round(data.reduce((s,t) => s + t.age, 0) / data.length);
-    document.getElementById('stat-exp').textContent = Math.round(data.reduce((s,t) => s + t.experience, 0) / data.length) + 'y';
-    const avgSal = Math.round(data.reduce((s,t) => s + t.salary, 0) / data.length);
+    document.getElementById('stat-age').textContent = Math.round(data.reduce(function(s,t) { return s + t.age; }, 0) / data.length);
+    document.getElementById('stat-exp').textContent = Math.round(data.reduce(function(s,t) { return s + t.experience; }, 0) / data.length) + 'y';
+    var avgSal = Math.round(data.reduce(function(s,t) { return s + t.salary; }, 0) / data.length);
     document.getElementById('stat-salary').textContent = '₹' + avgSal.toLocaleString('en-IN');
 
     td.innerHTML = buildTable(data, false);
   } catch(e) {
-    td.innerHTML = <div class="empty-state"><div class="icon">⚠️</div>${e.message}</div>;
+    td.innerHTML = '<div class="empty-state"><div class="icon">&#9888;&#65039;</div>' + e.message + '</div>';
     toast('Failed to load teachers', 'error');
   }
 }
 
 // BUILD TABLE
 function buildTable(data, compact) {
-  const arr = Array.isArray(data) ? data : [data];
-  const genderBadge = g => {
-    if (!g) return '';
-    const map = { 'Male': 'badge-blue', 'Female': 'badge-purple', 'Other': 'badge-amber' };
-    return <span class="badge ${map[g] || 'badge-blue'}">${g}</span>;
-  };
-  const expBadge = e => {
-    if (e === undefined) return '';
-    const cls = e >= 15 ? 'badge-green' : e >= 5 ? 'badge-amber' : 'badge-red';
-    return <span class="badge ${cls}">${e}y</span>;
-  };
+  var arr = Array.isArray(data) ? data : [data];
 
-  return `
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Position</th>
-            <th>Dept</th>
-            <th>Age</th>
-            <th>Gender</th>
-            <th>Salary</th>
-            <th>Exp</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${arr.map(t => `
-            <tr>
-              <td><span class="badge badge-purple">#${t.id}</span></td>
-              <td class="name-cell">${t.name || '—'}</td>
-              <td>${t.position || '—'}</td>
-              <td>${t.department || '—'}</td>
-              <td>${t.age || '—'}</td>
-              <td>${genderBadge(t.gender)}</td>
-              <td>₹${t.salary ? Number(t.salary).toLocaleString('en-IN') : '—'}</td>
-              <td>${expBadge(t.experience)}</td>
-              <td>
-                <div class="actions-cell">
-                  <button class="btn btn-edit btn-sm" onclick="openUpdate(${JSON.stringify(t).replace(/"/g,'&quot;')})">✏️ Edit</button>
-                  <button class="btn btn-danger btn-sm" onclick="deleteTeacher(${t.id})">🗑️ Del</button>
-                </div>
-              </td>
-            </tr>`).join('')}
-        </tbody>
-      </table>
-    </div>`;
+  function genderBadge(g) {
+    if (!g) return '';
+    var map = { 'Male': 'badge-blue', 'Female': 'badge-purple', 'Other': 'badge-amber' };
+    var cls = map[g] || 'badge-blue';
+    return '<span class="badge ' + cls + '">' + g + '</span>';
+  }
+
+  function expBadge(e) {
+    if (e === undefined) return '';
+    var cls = e >= 15 ? 'badge-green' : e >= 5 ? 'badge-amber' : 'badge-red';
+    return '<span class="badge ' + cls + '">' + e + 'y</span>';
+  }
+
+  var rows = arr.map(function(t) {
+    var tJson = JSON.stringify(t).replace(/"/g, '&quot;');
+    var sal = t.salary ? Number(t.salary).toLocaleString('en-IN') : '&mdash;';
+    return '<tr>' +
+      '<td><span class="badge badge-purple">#' + t.id + '</span></td>' +
+      '<td class="name-cell">' + (t.name || '&mdash;') + '</td>' +
+      '<td>' + (t.position || '&mdash;') + '</td>' +
+      '<td>' + (t.department || '&mdash;') + '</td>' +
+      '<td>' + (t.age || '&mdash;') + '</td>' +
+      '<td>' + genderBadge(t.gender) + '</td>' +
+      '<td>₹' + sal + '</td>' +
+      '<td>' + expBadge(t.experience) + '</td>' +
+      '<td><div class="actions-cell">' +
+        '<button class="btn btn-edit btn-sm" onclick="openUpdate(' + tJson + ')">&#9999;&#65039; Edit</button>' +
+        '<button class="btn btn-danger btn-sm" onclick="deleteTeacher(' + t.id + ')">&#128465;&#65039; Del</button>' +
+      '</div></td>' +
+    '</tr>';
+  }).join('');
+
+  return '<div class="table-wrap"><table>' +
+    '<thead><tr><th>ID</th><th>Name</th><th>Position</th><th>Dept</th><th>Age</th><th>Gender</th><th>Salary</th><th>Exp</th><th>Actions</th></tr></thead>' +
+    '<tbody>' + rows + '</tbody>' +
+    '</table></div>';
 }
 
-// DELETE (from table rows - shows toast)
+// DELETE (from table rows)
 async function deleteTeacher(id) {
-  if (!confirm(Delete teacher #${id}? This cannot be undone.)) return;
+  if (!confirm('Delete teacher #' + id + '? This cannot be undone.')) return;
   try {
-    const res = await fetch(${BASE()}/teacher/delete/${id}, { method: 'DELETE' });
-    const text = await res.text();
-    toast(text || Teacher #${id} deleted);
+    var res = await fetch(BASE() + '/teacher/delete/' + id, { method: 'DELETE' });
+    var text = await res.text();
+    toast(text || 'Teacher #' + id + ' deleted');
     loadAll();
   } catch(e) {
     toast('Delete failed: ' + e.message, 'error');
@@ -1326,25 +1310,24 @@ async function deleteTeacher(id) {
 
 // DELETE BY ID (dedicated panel)
 async function deleteTeacherById() {
-  const id = document.getElementById('del-id').value;
+  var id = document.getElementById('del-id').value;
   if (!id) { toast('Please enter an ID', 'error'); return; }
 
-  const sp = document.getElementById('del-spinner');
-  const rb = document.getElementById('del-response');
-  const de = document.getElementById('del-empty');
+  var sp = document.getElementById('del-spinner');
+  var rb = document.getElementById('del-response');
+  var de = document.getElementById('del-empty');
   sp.classList.add('visible');
 
   try {
-    const res = await fetch(${BASE()}/teacher/delete/${id}, { method: 'DELETE' });
-    const text = await res.text();
-    // Always plain string — success ya ResourceNotFoundException
+    var res = await fetch(BASE() + '/teacher/delete/' + id, { method: 'DELETE' });
+    var text = await res.text();
     rb.textContent = text;
-    rb.className = response-box ${res.ok ? '' : 'error'} visible;
+    rb.className = 'response-box ' + (res.ok ? '' : 'error') + ' visible';
     de.style.display = 'none';
     if (res.ok) toast(text);
     else toast(text, 'error');
   } catch(e) {
-    rb.textContent = 'Server se connect nahi ho pa raha.\nMake sure Spring Boot app chal raha hai at ' + BASE();
+    rb.textContent = 'Server se connect nahi ho pa raha. Make sure Spring Boot app chal raha hai at ' + BASE();
     rb.className = 'response-box error visible';
     de.style.display = 'none';
     toast('Server se connect nahi hua', 'error');
@@ -1355,10 +1338,10 @@ async function deleteTeacherById() {
 
 // UPDATE BY ID (dedicated panel)
 async function updateTeacherById() {
-  const id = document.getElementById('upd-id').value;
+  var id = document.getElementById('upd-id').value;
   if (!id) { toast('Please enter an ID', 'error'); return; }
 
-  const body = {
+  var body = {
     name: document.getElementById('upd-name').value,
     position: document.getElementById('upd-position').value,
     age: parseInt(document.getElementById('upd-age').value),
@@ -1368,28 +1351,28 @@ async function updateTeacherById() {
     experience: parseInt(document.getElementById('upd-experience').value)
   };
 
-  const sp = document.getElementById('upd-spinner');
-  const rb = document.getElementById('upd-response');
-  const ue = document.getElementById('upd-empty');
+  var sp = document.getElementById('upd-spinner');
+  var rb = document.getElementById('upd-response');
+  var ue = document.getElementById('upd-empty');
   sp.classList.add('visible');
 
   try {
-    const res = await fetch(${BASE()}/teacher/update/${id}, {
+    var res = await fetch(BASE() + '/teacher/update/' + id, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     });
-    const rawText = await res.text();
-    let display;
+    var rawText = await res.text();
+    var display;
     try { display = JSON.stringify(JSON.parse(rawText), null, 2); }
-    catch(_) { display = rawText; }
+    catch(ignored) { display = rawText; }
     rb.textContent = display;
-    rb.className = response-box ${res.ok ? '' : 'error'} visible;
+    rb.className = 'response-box ' + (res.ok ? '' : 'error') + ' visible';
     ue.style.display = 'none';
-    if (res.ok) toast(Teacher #${id} updated successfully! ✅);
+    if (res.ok) toast('Teacher #' + id + ' updated successfully!');
     else toast(rawText, 'error');
   } catch(e) {
-    rb.textContent = 'Server se connect nahi ho pa raha.\nMake sure Spring Boot app chal raha hai at ' + BASE();
+    rb.textContent = 'Server se connect nahi ho pa raha. Make sure Spring Boot app chal raha hai at ' + BASE();
     rb.className = 'response-box error visible';
     ue.style.display = 'none';
     toast('Server se connect nahi hua', 'error');
@@ -1418,7 +1401,7 @@ function closeModal() {
 
 async function submitUpdate() {
   if (!editingId) return;
-  const body = {
+  var body = {
     name: document.getElementById('m-name').value,
     position: document.getElementById('m-position').value,
     age: parseInt(document.getElementById('m-age').value),
@@ -1428,14 +1411,14 @@ async function submitUpdate() {
     experience: parseInt(document.getElementById('m-experience').value)
   };
   try {
-    const res = await fetch(${BASE()}/teacher/update/${editingId}, {
+    var res = await fetch(BASE() + '/teacher/update/' + editingId, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     });
-    const data = await res.json();
+    var data = await res.json();
     closeModal();
-    toast(Teacher #${editingId} updated! ✅);
+    toast('Teacher #' + editingId + ' updated!');
     loadAll();
   } catch(e) {
     toast('Update failed: ' + e.message, 'error');
