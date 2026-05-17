@@ -520,6 +520,128 @@
   ::-webkit-scrollbar-track { background: var(--surface); }
   ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
 
+  /* ===== MOBILE RESPONSIVE ===== */
+  @media (max-width: 768px) {
+
+    /* Sidebar — bottom navbar on mobile */
+    .sidebar {
+      top: auto;
+      bottom: 60px; /* above footer */
+      left: 0; right: 0;
+      width: 100%;
+      height: 60px;
+      flex-direction: row;
+      justify-content: space-around;
+      align-items: center;
+      padding: 0 8px;
+      border-right: none;
+      border-top: 1px solid var(--border);
+      gap: 0;
+      z-index: 200;
+    }
+
+    .logo-mark { display: none; }
+
+    .nav-btn {
+      width: 48px; height: 48px;
+      font-size: 20px;
+    }
+
+    .nav-btn .tooltip { display: none; }
+
+    /* Main content */
+    .main {
+      margin-left: 0;
+      padding: 16px 16px 140px 16px;
+    }
+
+    /* Topbar */
+    .topbar {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .page-title { font-size: 22px; }
+
+    .base-url-badge {
+      width: 100%;
+    }
+
+    .base-url-badge input {
+      width: 100%;
+      font-size: 11px;
+    }
+
+    /* Form grid — single column */
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .form-group.full { grid-column: 1; }
+
+    /* Stats row */
+    .stats-row {
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .stat-value { font-size: 22px; }
+
+    /* Cards */
+    .card { padding: 16px; }
+
+    /* Filter chips — scrollable */
+    .filter-chips {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .chip { white-space: nowrap; flex-shrink: 0; }
+
+    /* Table — horizontal scroll */
+    .table-wrap { overflow-x: auto; }
+    table { min-width: 600px; }
+
+    /* Modal */
+    .modal {
+      width: 95vw;
+      padding: 20px 16px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal .form-grid { grid-template-columns: 1fr; }
+
+    /* Footer */
+    footer {
+      left: 0 !important;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 16px;
+      font-size: 11px;
+    }
+
+    footer > div:last-child { text-align: left; }
+
+    /* Buttons full width on mobile */
+    .btn-primary { width: 100%; justify-content: center; }
+
+    /* Query row */
+    .query-row { flex-direction: column; }
+    .query-row .form-group { width: 100%; }
+  }
+
+  @media (max-width: 400px) {
+    .stats-row { grid-template-columns: 1fr 1fr; }
+    .stat-value { font-size: 18px; }
+    .page-title { font-size: 18px; }
+  }
+
   .section-sep {
     height: 1px;
     background: var(--border);
@@ -628,7 +750,7 @@
     <div class="base-url-badge">
       <div class="dot"></div>
       <span style="color:var(--text3)">API: </span>
-      <input type="text" id="baseUrl" value="https://teacher-management-production-012a.up.railway.app" placeholder="http://localhost:8080">
+      <input type="text" id="baseUrl" value="http://localhost:6969" placeholder="http://localhost:8080">
     </div>
   </div>
 
